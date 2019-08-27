@@ -1,0 +1,209 @@
+---
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .Rmd
+      format_name: rmarkdown
+      format_version: '1.1'
+      jupytext_version: 1.1.3
+  kernelspec:
+    display_name: Python 3
+    language: python
+    name: python3
+---
+
+```{python}
+import psycopg2
+
+```
+
+```{python}
+conn=psycopg2.connect(
+  database="postgres",
+  user="dum",
+  host="/var/run/postgresql"
+)
+```
+
+```{python}
+cur = conn.cursor()
+```
+
+```{python}
+cur.execute('''
+    drop table if exists ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    create table ign_reviews(
+        id bigint primary key
+    )
+''')
+conn.commit()
+```
+
+```{python}
+# !ls
+```
+
+```{python}
+import csv
+f = open('ign.csv', 'r')
+next(f)
+read_csv = csv.reader(f)
+```
+
+```{python}
+lens_for_char_scores = [len(item[1]) for item in read_csv]
+max_score = max(lens_for_char_scores)
+```
+
+```{python}
+cur.execute('''
+    drop table ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    create table ign_reviews(
+        id bigint primary key,
+        score_phrase varchar(11)
+    )
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    drop table ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    create table ign_reviews(
+        id bigint primary key,
+        score_phrase varchar(11),
+        title text,
+        url text,
+        platform varchar(20),
+        genre varchar(25)
+    )
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    drop table ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    create table ign_reviews(
+        id bigint primary key,
+        score_phrase varchar(11),
+        title text,
+        url text,
+        platform varchar(20),
+        genre varchar(25),
+        score DECIMAL(3, 1)
+    )
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    drop table ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+conn.rollback()
+cur.execute('''
+     create table ign_reviews(
+        id bigint primary key,
+        score_phrase varchar(11),
+        title text,
+        url text,
+        platform varchar(20),
+        genre varchar(25),
+        score DECIMAL(3, 1),
+        editors_choice BOOLEAN
+    )
+''')
+conn.commit()
+```
+
+```{python}
+cur.execute('''
+    drop table ign_reviews
+''')
+conn.commit()
+```
+
+```{python}
+# This is the final creation of the table using types
+# as bigint, varchar, text, date, decimal and boolean
+
+f = open('ign.csv', 'r')
+next(f)
+read_csv = csv.reader(f)
+
+conn.rollback()
+cur.execute('''
+    drop table if exists ign_reviews
+''')
+conn.commit()
+cur.execute('''
+     create table ign_reviews(
+        id bigint primary key,
+        score_phrase varchar(11),
+        title text,
+        url text,
+        platform varchar(20),
+        score DECIMAL(3, 1),
+        genre varchar(25),
+        editors_choice BOOLEAN,
+        release_date DATE
+    )
+''')
+conn.commit()
+```
+
+```{python}
+# Here, each row is modified creating the date of the post and inserting
+# each row into the database using the postgres syntax to insert an array
+
+from datetime import date
+for item in read_csv:
+    final_row = item[:8]
+    f_date = date(int(item[8]), int(item[9]), int(item[10]))
+    final_row.append(f_date)
+    cur.execute('''
+        insert into ign_reviews values(%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+    ''', (final_row))
+
+conn.commit()
+    
+    
+```
+
+```{python}
+cur.execute('''
+    select * from ign_reviews limit 15
+''')
+data = cur.fetchall()
+conn.commit()
+data
+```
